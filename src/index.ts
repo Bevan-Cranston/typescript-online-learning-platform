@@ -1,19 +1,29 @@
-// note: custom class type with default primitive variables and an optional variable of an array of other courses to handle multiple current courses enrolled
+// Note: custom class type with default primitive variables and an optional variable of an array of other courses to handle multiple current courses enrolled
 // optional variables allow flexibility on assignment for new objects  
 type Course = {title: string, category: string, description: string, prerequisites?: Course[]};
 
+// Note: function with default and optional arguments allows flexibility to handle multiple different uses
+// Example - Calculus 1 has no prerequisites but Calculus 2 does
+function createCourse(title: string, category: string, description: string, prerequisites?: Course[]): Course {
+    if (typeof prerequisites === undefined) {
+        return {title: title, category: category, description: description};
+    } 
+    return {title: title, category: category, description: description, prerequisites: prerequisites as Course[]};
+    
+}
+
 // Example 1: no prerequisites 
-let course = {title: 'Calculus 1', category: 'Mathematics', description: 'Introduction to derivatives and intergrals'}
-// Example 2: optional prerequisite argument variable used
-let course2 = {title: 'Calculus 2', category: 'Mathematics', description: 'Intermediate derivatives and intergrals', 
-    prequisites: course
-};
+const course = createCourse('Calculus 1', 'Mathematics', 'Introduction to derivatives and intergrals');
+// Example 2: optional prerequisite argument used
+const course2 = createCourse('Calculus 2', 'Mathematics', 'Intermediate derivatives and intergrals', [course]);
 
 type Student = {name: string, id: number};
+// Note: courses is defined as an array since each teacher may have one or many courses assigned to them
 type Teacher = {name: string, courses: Course[]};
 type Admin = {name: string, department: string};
 
 // Note: TypeScript allows us to use a union type which gives us the ability to work with objects more generally
+// For example, our changeName function helps us mangage Student, Teacher and Admin objects by taking an input of type User and outputing a varible or type User, creating clean and readable code
 type User = Student | Teacher | Admin;
 
 // enum lists all possible states of enrollment
@@ -32,7 +42,7 @@ type Enrolment = {student: Student, courses: Course[], status: enrollmentStatus}
 
 function addTeachers(name: string, courses: Course[]): Teacher;
 function addTeachers(names: string[], coursesList: Course[][]): Teacher[];
- 
+
 function addTeachers(
         nameOrNames: string | string[],
         coursesOrCoursesList: Course[] | Course[][]
@@ -70,19 +80,44 @@ function changeName(user: User, name: string): User {
 // example student
 let student = {name: 'Bob', id: 12345}
 
-let enrolment: Enrolment = {student: student, courses: [course], status: enrollmentStatus.Enrolled};
+let enrolment: Enrolment = {student: student, courses: [], status: enrollmentStatus.Pending};
 
-// Note: Generics will be used to offer flexibility and remove the need for multiple function definitions for similar tasks 
-// Example: in this case, we can add a course to either a student enrollment or a teacher's current allocation using the same function
-// this maintains consistency between the variable input and output type
+// Note: Generics will be used to offer flexibility and remove the need for multiple function definitions for similar tasks. This also allows us to maintain consistency between the variable input and output variables for greater type safety an error prevention
+// For example: in this case, we can add a course to a student to enroll them in it, or to a teacher to allocate it to them using the same function
 function addCourse <T extends {courses: Course[]}>(arg: T, course: Course): T {
     arg.courses.push(course);
+    // Note: although generics take multiple types, we can still perform actions for specific types using type narrowing
+    // For example - here we set the status of a student's enrollment to enrolled
+    if ('status' in arg) {
+        arg.status = enrollmentStatus.Enrolled;
+    }
+    return arg;
+}
+
+// In this example, we remove a course from either a teacher's allocation or from a student's enrollment
+function removeCourse <T extends {courses: Course[]}>(arg: T, course: Course): T {
+    // Recreate the courses array removing the selected course
+    const updatedcourses = arg.courses.filter(item => item !== course);
+    if (updatedcourses.length === arg.courses.length){
+        console.log("Course not found - nothing removed");
+    }
+    arg.courses = updatedcourses;
+    // if this is a student and we have removed all courses from their enrollment we set the status to pending
+    if ('status' in arg) {
+        if (arg.courses.length == 0)
+            arg.status = enrollmentStatus.Pending;
+    }
     return arg;
 }
 
 // student example
 console.log(enrolment);
-addCourse(enrolment, course2);
+addCourse(enrolment, course);
+console.log(enrolment);
+
+// student remove example
+console.log(enrolment);
+removeCourse(enrolment, course);
 console.log(enrolment);
 
 // teacher example
