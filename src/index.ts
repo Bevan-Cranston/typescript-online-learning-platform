@@ -1,6 +1,6 @@
-// Note: custom class type Course with default primitive variables and an optional variable of an array of other Course objects for flexibility to handle the case where one or many prerequisite courses are required:
+// Note: custom object type Course with default primitive variables and an optional variable of an array of other Course objects for flexibility to handle the case where one or many prerequisite courses are required:
 type Course = {title: string, category: string, description: string, prerequisites?: Course[]};
-// Note: function createCourses with default and optional parameters allows flexibility to handle multiple different uses:
+// Note: function createCourse with default and optional parameters allows flexibility to handle multiple different uses:
 function createCourse(title: string, category: string, description: string, prerequisites?: Course[]): Course {
     if (typeof prerequisites === "undefined") {
         return {title: title, category: category, description: description};
@@ -19,12 +19,12 @@ enum enrollmentStatus {
     Cancelled,
     Rejected
 }
-// Custom class types defined to handle the various user categories in the Edutech system: 
+// Custom object types defined to handle the various user categories in the Edutech system: 
 type Student = {name: string, id: number};
 // Note: courses is defined as an array since each teacher may have one or many courses assigned to them
 type Teacher = {name: string, courses: Course[]};
 type Admin = {name: string, department: string};
-// Custom class type to handle enrolment which takes the custom class type Student as well as an array of the custom class type Course and our enum for enrolment status, combining powerful type concepts into a unified Enrollment data structure capable of handling complex operations to manage enrolments. 
+// Custom object type to handle enrolment which takes the custom object type Student as well as an array of the custom object type Course and our enum for enrolment status, combining powerful type concepts into a unified Enrollment data structure capable of handling complex operations to manage enrolments. 
 type Enrolment = {student: Student, courses: Course[], status: enrollmentStatus}
 // Note: TypeScript allows us to use a union type which gives us the ability to work with objects more generally:
 type User = Student | Teacher | Admin;
