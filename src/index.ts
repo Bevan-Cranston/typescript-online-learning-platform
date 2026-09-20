@@ -1,32 +1,17 @@
-// Note: custom class type with default primitive variables and an optional variable of an array of other courses to handle multiple current courses enrolled
-// optional variables allow flexibility on assignment for new objects  
+// Note: custom class type Course with default primitive variables and an optional variable of an array of other Course objects for flexibility to handle the case where one or many prerequisite courses are required:
 type Course = {title: string, category: string, description: string, prerequisites?: Course[]};
-
-// Note: function with default and optional arguments allows flexibility to handle multiple different uses
-// Example - Calculus 1 has no prerequisites but Calculus 2 does
+// Note: function createCourses with default and optional parameters allows flexibility to handle multiple different uses:
 function createCourse(title: string, category: string, description: string, prerequisites?: Course[]): Course {
-    if (typeof prerequisites === undefined) {
+    if (typeof prerequisites === "undefined") {
         return {title: title, category: category, description: description};
     } 
     return {title: title, category: category, description: description, prerequisites: prerequisites as Course[]};
-    
 }
-
-// Example 1: no prerequisites 
+// For example, Calculus 1 has no prerequisites so we leave out the optional parameter ‘prerequisites’ when we call the createCourse function to instantiate a new Course object:
 const course = createCourse('Calculus 1', 'Mathematics', 'Introduction to derivatives and intergrals');
-// Example 2: optional prerequisite argument used
+// In this example, Calculus 2 has the prerequisite of Calculus 1 so the optional ‘prerequisites’ parameter is used when calling createCourses:
 const course2 = createCourse('Calculus 2', 'Mathematics', 'Intermediate derivatives and intergrals', [course]);
-
-type Student = {name: string, id: number};
-// Note: courses is defined as an array since each teacher may have one or many courses assigned to them
-type Teacher = {name: string, courses: Course[]};
-type Admin = {name: string, department: string};
-
-// Note: TypeScript allows us to use a union type which gives us the ability to work with objects more generally
-// For example, our changeName function helps us mangage Student, Teacher and Admin objects by taking an input of type User and outputing a varible or type User, creating clean and readable code
-type User = Student | Teacher | Admin;
-
-// enum lists all possible states of enrollment
+// enum lists all possible states of enrolment
 enum enrollmentStatus {
     Submitted,
     Pending,
@@ -34,12 +19,23 @@ enum enrollmentStatus {
     Cancelled,
     Rejected
 }
-
+// Custom class types defined to handle the various user categories in the Edutech system: 
+type Student = {name: string, id: number};
+// Note: courses is defined as an array since each teacher may have one or many courses assigned to them
+type Teacher = {name: string, courses: Course[]};
+type Admin = {name: string, department: string};
+// Custom class type to handle enrolment which takes the custom class type Student as well as an array of the custom class type Course and our enum for enrolment status, combining powerful type concepts into a unified Enrollment data structure capable of handling complex operations to manage enrolments. 
 type Enrolment = {student: Student, courses: Course[], status: enrollmentStatus}
-
+// Note: TypeScript allows us to use a union type which gives us the ability to work with objects more generally:
+type User = Student | Teacher | Admin;
+// For example, our changeName function helps us manage the Student, Teacher and Admin objects by taking an input of the union type User and outputting a variable of union type User, creating clean and readable code
+function changeName(user: User, name: string): User {
+    user.name = name;
+    return user;
+}
+// however, the function doesn't know what sub-type of user it has, which is fine in this case, but we will see later how generics can be used for greater type consistency
 // Note: we can define multiple function signatures for the same method with function overloading which allows greater flexibility
-// Example - in this case, we can create either a single new Teacher or an array of them 
-
+// Example - in this case, we can create either a single new Teacher or an array of them with the addTeachers function: 
 function addTeachers(name: string, courses: Course[]): Teacher;
 function addTeachers(names: string[], coursesList: Course[][]): Teacher[];
 
@@ -70,23 +66,16 @@ let teacher = addTeachers('Alice', [course]);
 // example teachers
 let teachers = addTeachers(['Alice', 'Bob'], [[course], [course2]]);
 
-// Note: by taking a union type, this function has the flexibility to change the name of any sub-type of User
-// however, the function doesn't know what sub-type of user it has, which is fine in this case, but we will see later how generics can be used for greater type consistency
-function changeName(user: User, name: string): User {
-    user.name = name;
-    return user;
-}
-
 // example student
 let student = {name: 'Bob', id: 12345}
 
 let enrolment: Enrolment = {student: student, courses: [], status: enrollmentStatus.Pending};
 
-// Note: Generics will be used to offer flexibility and remove the need for multiple function definitions for similar tasks. This also allows us to maintain consistency between the variable input and output variables for greater type safety an error prevention
-// For example: in this case, we can add a course to a student to enroll them in it, or to a teacher to allocate it to them using the same function
+// Note: Generics will be used to offer flexibility and remove the need for multiple function definitions for similar tasks. This also allows us to maintain consistency between the input variables and output variables for greater type safety and error prevention
+// For example: in this case, with the same addCourse function, we can add a course to a student to manage their enrolment, or to a teacher to allocate it to them:
 function addCourse <T extends {courses: Course[]}>(arg: T, course: Course): T {
     arg.courses.push(course);
-    // Note: although generics take multiple types, we can still perform actions for specific types using type narrowing
+    // Note: although generics take multiple types, we can still perform actions for specific types  using type narrowing
     // For example - here we set the status of a student's enrollment to enrolled
     if ('status' in arg) {
         arg.status = enrollmentStatus.Enrolled;
@@ -124,4 +113,3 @@ console.log(enrolment);
 console.log(teacher);
 addCourse(teacher, course2);
 console.log(teacher);
-
